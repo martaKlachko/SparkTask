@@ -15,7 +15,7 @@ import org.apache.spark.util.LongAccumulator;
 
 public class Main  {
 
-    static Avocado createAvocado(String[] metadata, LongAccumulator accum) {
+    static Avocado createAvocado(String[] metadata) {
         DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
         Date date ;
 
@@ -35,8 +35,7 @@ public class Main  {
 
             return avocado;
         } catch (Exception e) {
-            accum.add(1L);
-            System.out.println(accum.value());
+
             return null;
         }
 
@@ -44,8 +43,7 @@ public class Main  {
 
 
 
-    public static void main(String[] args)
-            throws IOException, ParseException, InterruptedException, ExecutionException {
+    public static void main(String[] args){
         String csvFile = "src/main/resources/avocado.csv";
 
         SparkConf sparkConf = new SparkConf();
@@ -56,9 +54,11 @@ public class Main  {
         JavaRDD<String> rdd_records = context.textFile(csvFile);
 
         JavaRDD<String[]> splitted_csv_recordsRDD = rdd_records.map(line -> line.split(","));
-        try {
+
             LongAccumulator accum = context.sc().longAccumulator();
-            JavaRDD<Avocado> avocadosRDD = splitted_csv_recordsRDD.map(line -> createAvocado(line, accum));
+            JavaRDD<Avocado> avocadosRDD = splitted_csv_recordsRDD.map(line -> createAvocado(line));
+             avocadosRDD.filter(Objects::isNull).foreach(x-> accum.add(1));
+
 
             JavaRDD<Avocado> avocadosFromBoiseRDD = avocadosRDD.filter(Objects::nonNull)
                     .filter(x -> x.getRegion().equals("Boise"));
@@ -67,19 +67,18 @@ public class Main  {
             Double maxAvgPriceFromBoise = avocadosFromBoiseRDD.map(x -> x.getAvgPrice())
                     .reduce((x, y) -> Math.max(x, y));
             System.out.println("max average price of avocados from Boise: " + maxAvgPriceFromBoise);
-            System.out.println("count= " + accum.count());
+            System.out.println("count= " + accum.value());
 
             JavaPairRDD<Object, Iterable<Avocado>> grouppedRDD = avocadosRDD.filter(Objects::nonNull)
                     .groupBy(avocado -> avocado.getDate());
-            //System.out.println(grouppedRDD.collect());
-            while (true) {
-                Thread.sleep(200);
-            }
 
-        } catch (NullPointerException npe) {
+            
 
-            System.out.println("Null pointer exception");
-        }
+//            while (true) {
+//                Thread.sleep(200);
+//            }
+
+
 
         context.close();
     }
