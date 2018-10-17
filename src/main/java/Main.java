@@ -1,23 +1,23 @@
-import java.io.IOException;
+
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 
+import javafx.util.Pair;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.util.LongAccumulator;
+import scala.Tuple2;
 
-public class Main  {
+public class Main {
 
     static Avocado createAvocado(String[] metadata) {
         DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        Date date ;
+        Date date;
 
         try {
             date = df.parse(metadata[1]);
@@ -42,8 +42,7 @@ public class Main  {
     }
 
 
-
-    public static void main(String[] args){
+    public static void main(String[] args) {
         String csvFile = "src/main/resources/avocado.csv";
 
         SparkConf sparkConf = new SparkConf();
@@ -55,29 +54,33 @@ public class Main  {
 
         JavaRDD<String[]> splitted_csv_recordsRDD = rdd_records.map(line -> line.split(","));
 
-            LongAccumulator accum = context.sc().longAccumulator();
-            JavaRDD<Avocado> avocadosRDD = splitted_csv_recordsRDD.map(line -> createAvocado(line));
-             avocadosRDD.filter(Objects::isNull).foreach(x-> accum.add(1));
+        LongAccumulator accum = context.sc().longAccumulator();
+        JavaRDD<Avocado> avocadosRDD = splitted_csv_recordsRDD.map(line -> createAvocado(line));
+        avocadosRDD.filter(Objects::isNull).foreach(x -> accum.add(1));
+        JavaRDD<Avocado> notNullAvocadosRDD = avocadosRDD.filter(Objects::nonNull);
+
+        JavaRDD<Avocado> avocadosFromBoiseRDD = notNullAvocadosRDD
+                .filter(x -> x.getRegion().equals("Boise"));
+        Long avocadosFromBoiseCount = avocadosFromBoiseRDD.count();
+        System.out.println("number of avocados from Boise: " + avocadosFromBoiseCount);
+        Double maxAvgPriceFromBoise = avocadosFromBoiseRDD.map(x -> x.getAvgPrice())
+                .reduce((x, y) -> Math.max(x, y));
+        System.out.println("max average price of avocados from Boise: " + maxAvgPriceFromBoise);
+        System.out.println("count of errors while parsing= " + accum.value());
 
 
-            JavaRDD<Avocado> avocadosFromBoiseRDD = avocadosRDD.filter(Objects::nonNull)
-                    .filter(x -> x.getRegion().equals("Boise"));
-            Long avocadosFromBoiseCount = avocadosFromBoiseRDD.count();
-            System.out.println("number of avocados from Boise: " + avocadosFromBoiseCount);
-            Double maxAvgPriceFromBoise = avocadosFromBoiseRDD.map(x -> x.getAvgPrice())
-                    .reduce((x, y) -> Math.max(x, y));
-            System.out.println("max average price of avocados from Boise: " + maxAvgPriceFromBoise);
-            System.out.println("count= " + accum.value());
+        JavaPairRDD<String, Double> maxPricesByRegionRDD = notNullAvocadosRDD
+                .mapToPair(m -> new Tuple2<>(m.getRegion(), m.getAvgPrice()))
+                .reduceByKey((a, b) -> Math.max(a, b));
+        System.out.println(maxPricesByRegionRDD.collect());
 
-            JavaPairRDD<Object, Iterable<Avocado>> grouppedRDD = avocadosRDD.filter(Objects::nonNull)
-                    .groupBy(avocado -> avocado.getDate());
 
-            
+
+       // Pair<String, Double> pair=maxPricesByRegionRDD.values().
 
 //            while (true) {
 //                Thread.sleep(200);
 //            }
-
 
 
         context.close();
