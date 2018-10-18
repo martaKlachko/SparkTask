@@ -1,37 +1,36 @@
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Objects;
-
-
-import javafx.util.Pair;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
+import org.apache.spark.sql.SparkSession;
+
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
+import java.util.Objects;
 
 public class Main {
 
     static Avocado createAvocado(String[] metadata) {
-        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        Date date;
+//        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+//        Date date;
 
         try {
-            date = df.parse(metadata[1]);
+
 
             Double avgPrice = Double.parseDouble(metadata[2]);
             Double volume = Double.parseDouble(metadata[3]);
             String type = metadata[11];
-            DateFormat df1 = new SimpleDateFormat("yyyy");
-            Date year;
-
-            year = df1.parse(metadata[12]);
 
             String region = metadata[13];
-            Avocado avocado = new Avocado(date, avgPrice, volume, type, year, region);
+            Avocado avocado = new Avocado(avgPrice, volume, type, region);
 
             return avocado;
         } catch (Exception e) {
@@ -74,15 +73,22 @@ public class Main {
                 .reduceByKey((a, b) -> Math.max(a, b));
         System.out.println(maxPricesByRegionRDD.collect());
 
+        SparkSession spark = SparkSession.builder().getOrCreate();
 
+        Dataset<Row> matchDF = spark.createDataFrame(notNullAvocadosRDD, Avocado.class);
 
-       // Pair<String, Double> pair=maxPricesByRegionRDD.values().
+        matchDF.createOrReplaceTempView("avocados");
 
-//            while (true) {
+        Dataset<Row> sqlDF = spark.sql("SELECT region, avgPrice FROM avocados where avgPrice=(" +
+                "select max(avgPrice) from avocados)");
+
+        sqlDF.show();
+
+        //while (true) {
 //                Thread.sleep(200);
 //            }
 
-
         context.close();
+
     }
 }
