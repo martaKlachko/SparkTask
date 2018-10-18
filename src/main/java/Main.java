@@ -15,19 +15,16 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import java.util.Date;
+
 import java.util.Objects;
 
-import static org.apache.spark.sql.functions.from_unixtime;
-import static org.apache.spark.sql.functions.to_date;
-import static org.apache.spark.sql.functions.unix_timestamp;
 
 public class Main {
 
     static Avocado createAvocado(String[] metadata) {
 
         try {
-            DateFormat df = new SimpleDateFormat("m/dd/yyyy");
+            DateFormat df = new SimpleDateFormat("m/d/yyyy");
             Long date = df.parse(metadata[1]).getTime();
 
             Double avgPrice = Double.parseDouble(metadata[2]);
@@ -84,8 +81,8 @@ public class Main {
         Dataset<Row> matchDF = spark.createDataFrame(notNullAvocadosRDD, Avocado.class);
 
         matchDF.createOrReplaceTempView("avocados");
-        matchDF.printSchema();
-        Dataset<Row> sqlDF = spark.sql("SELECT from_unixtime(date /1000,\"m/dd/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
+
+        Dataset<Row> sqlDF = spark.sql("SELECT from_unixtime(date /1000,\"m/d/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
                 "select max(avgPrice) from avocados)");
        
         sqlDF.show();

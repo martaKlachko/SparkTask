@@ -1,6 +1,7 @@
 import java.io.Serializable;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class Avocado implements Serializable {
     private Long date;
@@ -65,6 +66,23 @@ public class Avocado implements Serializable {
     public Avocado() {
         super();
         // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Avocado avocado = (Avocado) o;
+        return Objects.equals(date, avocado.date) &&
+                Objects.equals(avgPrice, avocado.avgPrice) &&
+                Objects.equals(volume, avocado.volume) &&
+                Objects.equals(type, avocado.type) &&
+                Objects.equals(region, avocado.region);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(date, avgPrice, volume, type, region);
     }
 
     @Override
