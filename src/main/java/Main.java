@@ -44,7 +44,8 @@ public class Main {
 
 
     public static void main(String[] args) throws ParseException {
-        String csvFile = "src/main/resources/avocado.csv";
+      //  String csvFile = "src/main/resources/avocado.csv";
+        String csvFile = "C:\\Users\\Marta_Kurman\\Desktop\\avocado.csv";
 
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("Spark2Example");
