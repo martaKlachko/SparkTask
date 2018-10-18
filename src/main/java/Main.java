@@ -10,27 +10,32 @@ import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
 import org.apache.spark.sql.SparkSession;
 
-import java.util.Date;
+
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+import java.util.Date;
 import java.util.Objects;
+
+import static org.apache.spark.sql.functions.from_unixtime;
+import static org.apache.spark.sql.functions.to_date;
+import static org.apache.spark.sql.functions.unix_timestamp;
 
 public class Main {
 
     static Avocado createAvocado(String[] metadata) {
-//        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-//        Date date;
 
         try {
-
+            DateFormat df = new SimpleDateFormat("m/dd/yyyy");
+            Long date = df.parse(metadata[1]).getTime();
 
             Double avgPrice = Double.parseDouble(metadata[2]);
             Double volume = Double.parseDouble(metadata[3]);
             String type = metadata[11];
 
             String region = metadata[13];
-            Avocado avocado = new Avocado(avgPrice, volume, type, region);
+            Avocado avocado = new Avocado(date, avgPrice, volume, type, region);
 
             return avocado;
         } catch (Exception e) {
@@ -41,7 +46,7 @@ public class Main {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
         String csvFile = "src/main/resources/avocado.csv";
 
         SparkConf sparkConf = new SparkConf();
@@ -71,6 +76,7 @@ public class Main {
         JavaPairRDD<String, Double> maxPricesByRegionRDD = notNullAvocadosRDD
                 .mapToPair(m -> new Tuple2<>(m.getRegion(), m.getAvgPrice()))
                 .reduceByKey((a, b) -> Math.max(a, b));
+        System.out.println("max prices per region");
         System.out.println(maxPricesByRegionRDD.collect());
 
         SparkSession spark = SparkSession.builder().getOrCreate();
@@ -78,10 +84,10 @@ public class Main {
         Dataset<Row> matchDF = spark.createDataFrame(notNullAvocadosRDD, Avocado.class);
 
         matchDF.createOrReplaceTempView("avocados");
-
-        Dataset<Row> sqlDF = spark.sql("SELECT region, avgPrice FROM avocados where avgPrice=(" +
+        matchDF.printSchema();
+        Dataset<Row> sqlDF = spark.sql("SELECT from_unixtime(date /1000,\"m/dd/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
                 "select max(avgPrice) from avocados)");
-
+       
         sqlDF.show();
 
         //while (true) {
@@ -89,6 +95,7 @@ public class Main {
 //            }
 
         context.close();
+
 
     }
 }

@@ -2,15 +2,21 @@ import java.io.Serializable;
 
 import java.util.Date;
 
-public class Avocado implements Serializable{
-
+public class Avocado implements Serializable {
+    private Long date;
     private Double avgPrice;
     private Double volume;
     private String type;
 
     private String region;
 
+    public Long getDate() {
+        return date;
+    }
 
+    public void setDate(Long date) {
+        this.date = date;
+    }
 
     public Double getAvgPrice() {
         return avgPrice;
@@ -37,7 +43,6 @@ public class Avocado implements Serializable{
     }
 
 
-
     public String getRegion() {
         return region;
     }
@@ -47,15 +52,13 @@ public class Avocado implements Serializable{
     }
 
 
-
-
-    public Avocado( Double avgPrice, Double volume, String type,  String region) {
+    public Avocado(Long date, Double avgPrice, Double volume, String type, String region) {
         super();
 
         this.avgPrice = avgPrice;
         this.volume = volume;
         this.type = type;
-
+        this.date = date;
         this.region = region;
     }
 
@@ -66,8 +69,12 @@ public class Avocado implements Serializable{
 
     @Override
     public String toString() {
-        return "Avocado [ avgPrice=" + avgPrice + ", volume=" + volume + ", type=" + type  + ", region=" + region + "]+\n" ;
+        return "Avocado{" +
+                "date=" + date +
+                ", avgPrice=" + avgPrice +
+                ", volume=" + volume +
+                ", type='" + type + '\'' +
+                ", region='" + region + '\'' +
+                '}';
     }
-
-
 }
