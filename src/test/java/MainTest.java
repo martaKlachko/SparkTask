@@ -27,7 +27,6 @@ public class MainTest {
         assertEquals(Long.valueOf(actual.getDate()), Long.valueOf(date.getTime()));
         assertEquals(actual.getAvgPrice(), 1.11);
         assertEquals(actual.getVolume(), 99172.96);
-
     }
 
     @Test
@@ -56,6 +55,13 @@ public class MainTest {
 
         assertNotNull(actual);
         assertFalse(actual.equals(expected));
+    }
 
+    @Test
+    public void testEmptyData() {
+        String line = "";
+        Avocado actual = Main.createAvocado(line.split(","));
+
+        assertNull(actual);
     }
 }
