@@ -9,7 +9,6 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 
 
 public class MainTest {
@@ -38,6 +37,7 @@ public class MainTest {
 
         assertNull(actual);
     }
+
     @Test
     public void testNotEnoughData() {
         String line = "43,9/6/2015,0.99,55595.74,629.46,45633.34,181.49,9151.45,165.39,0,conventional,2015";
@@ -56,6 +56,6 @@ public class MainTest {
 
         assertNotNull(actual);
         assertFalse(actual.equals(expected));
-      
+
     }
 }

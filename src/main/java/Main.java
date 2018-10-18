@@ -84,7 +84,7 @@ public class Main {
 
         Dataset<Row> sqlDF = spark.sql("SELECT from_unixtime(date /1000,\"m/d/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
                 "select max(avgPrice) from avocados)");
-       
+
         sqlDF.show();
 
         //while (true) {
