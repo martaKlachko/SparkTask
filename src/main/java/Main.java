@@ -43,9 +43,11 @@ public class Main {
     }
 
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, InterruptedException {
       //  String csvFile = "src/main/resources/avocado.csv";
-        String csvFile = "C:\\Users\\Marta_Kurman\\Desktop\\avocado.csv";
+       // String csvFile = "C:\\Users\\Marta_Kurman\\Desktop\\avocado.csv";
+      //  String csvFile = "gs://jar_storage/avocado.csv";
+        String csvFile = args[0];
 
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("Spark2Example");
@@ -87,12 +89,13 @@ public class Main {
                 "select max(avgPrice) from avocados)");
 
         sqlDF.show();
+        context.close();
 
-        //while (true) {
+
+//        while (true) {
 //                Thread.sleep(200);
 //            }
 
-        context.close();
 
 
     }
