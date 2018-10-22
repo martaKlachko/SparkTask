@@ -1,12 +1,10 @@
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.util.LongAccumulator;
-import scala.Tuple2;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -39,14 +37,13 @@ public class Main {
 
 
     public static void main(String[] args) throws ParseException, InterruptedException {
-         //String csvFile = "src/main/resources/avocado.csv";
+        //String csvFile = "src/main/resources/avocado.csv";
         // String csvFile = "C:\\Users\\Marta_Kurman\\Desktop\\avocado.csv";
         //  String csvFile = "gs://jar_storage/avocado.csv";
         String csvFile = args[0];
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("Spark2Example");
-        sparkConf.setMaster("local");
-        sparkConf.set("spark.submit.deployMode","cluster");
+        sparkConf.setMaster("yarn");
         JavaSparkContext context = new JavaSparkContext(sparkConf);
         LongAccumulator accum = context.sc().longAccumulator();
 
@@ -76,20 +73,19 @@ public class Main {
         System.out.println("max average price of avocados from Boise: " + maxAvgPriceFromBoise);
 
 
-        JavaPairRDD<String, Double> maxPricesByRegionRDD = notNullAvocadosRDD
-                .mapToPair(m -> new Tuple2<>(m.getRegion(), m.getAvgPrice()))
-                .reduceByKey((a, b) -> Math.max(a, b));
-        // ???? //maxPricesByRegionRDD.saveAsTextFile("gs://jar_storage/result/maxPricesByRegion");
-
-
         Dataset<Row> avocadosDF = spark.createDataFrame(notNullAvocadosRDD, Avocado.class);
         avocadosDF.createOrReplaceTempView("avocados");
+        //Dataset<Row> maxPriceDF = spark.sql("SELECT from_unixtime(date /1000,\"m/d/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
+        //        "select max(avgPrice) from avocados)");
+        //maxPriceDF.write().json("gs://jar_storage/result/maxPriceInAllRegions");
 
-        Dataset<Row> maxPriceDF = spark.sql("SELECT from_unixtime(date /1000,\"m/d/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
-                "select max(avgPrice) from avocados)");
 
+        Dataset<Row> avgPricesByRegionDF = spark.sql("SELECT region, avg(avgPrice) FROM avocados group by region");
+        avgPricesByRegionDF.write().json("gs://jar_storage/result/avgPricesByRegion");
 
-        maxPriceDF.write().json("gs://jar_storage/result/maxPriceInAllRegions");
+        Dataset<Row> maxPricesByRegionDF = spark.sql("SELECT region, max(avgPrice) FROM avocados group by region");
+        maxPricesByRegionDF.write().json("gs://jar_storage/result/maxPricesByRegion");
+
 
         context.close();
 
