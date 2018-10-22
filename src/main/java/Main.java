@@ -39,13 +39,14 @@ public class Main {
 
 
     public static void main(String[] args) throws ParseException, InterruptedException {
-        // String csvFile = "src/main/resources/avocado.csv";
+         //String csvFile = "src/main/resources/avocado.csv";
         // String csvFile = "C:\\Users\\Marta_Kurman\\Desktop\\avocado.csv";
         //  String csvFile = "gs://jar_storage/avocado.csv";
         String csvFile = args[0];
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("Spark2Example");
         sparkConf.setMaster("local");
+        sparkConf.set("spark.submit.deployMode","cluster");
         JavaSparkContext context = new JavaSparkContext(sparkConf);
         LongAccumulator accum = context.sc().longAccumulator();
 
