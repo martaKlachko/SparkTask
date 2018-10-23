@@ -75,9 +75,9 @@ public class Main {
 
         Dataset<Row> avocadosDF = spark.createDataFrame(notNullAvocadosRDD, Avocado.class);
         avocadosDF.createOrReplaceTempView("avocados");
-        //Dataset<Row> maxPriceDF = spark.sql("SELECT from_unixtime(date /1000,\"m/d/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
-        //        "select max(avgPrice) from avocados)");
-        //maxPriceDF.write().json("gs://jar_storage/result/maxPriceInAllRegions");
+        Dataset<Row> maxPriceDF = spark.sql("SELECT from_unixtime(date /1000,\"m/d/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
+                "select max(avgPrice) from avocados)");
+        maxPriceDF.write().json("gs://jar_storage/result/maxPriceInAllRegions");
 
 
         Dataset<Row> avgPricesByRegionDF = spark.sql("SELECT region, avg(avgPrice) FROM avocados group by region");
