@@ -7,7 +7,6 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.util.LongAccumulator;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
 
@@ -36,9 +35,8 @@ public class Main {
     }
 
 
-    public static void main(String[] args) throws ParseException, InterruptedException {
+    public static void main(String[] args)  {
         //String csvFile = "src/main/resources/avocado.csv";
-        // String csvFile = "C:\\Users\\Marta_Kurman\\Desktop\\avocado.csv";
         //  String csvFile = "gs://jar_storage/avocado.csv";
         String csvFile = args[0];
         SparkConf sparkConf = new SparkConf();
