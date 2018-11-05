@@ -36,12 +36,12 @@ public class Main {
 
 
     public static void main(String[] args)  {
-        //String csvFile = "src/main/resources/avocado.csv";
+        String csvFile = "src/main/resources/avocado.csv";
         //  String csvFile = "gs://jar_storage/avocado.csv";
-        String csvFile = args[0];
+        //String csvFile = args[0];
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("Spark2Example");
-        sparkConf.setMaster("yarn");
+        sparkConf.setMaster("local");
         JavaSparkContext context = new JavaSparkContext(sparkConf);
         LongAccumulator accum = context.sc().longAccumulator();
 
@@ -57,12 +57,12 @@ public class Main {
 
         JavaRDD<Avocado> notNullAvocadosRDD = avocadosRDD.filter(Objects::nonNull);
         Dataset<Row> notNullAvocadosDF = spark.createDataFrame(notNullAvocadosRDD, Avocado.class);
-        notNullAvocadosDF.write().json("gs://jar_storage/result/notNullAvocados");
+      //  notNullAvocadosDF.write().json("gs://jar_storage/result/notNullAvocados");
 
         JavaRDD<Avocado> avocadosFromBoiseRDD = notNullAvocadosRDD
                 .filter(x -> x.getRegion().equals("Boise"));
         Dataset<Row> avocadosFromBoiseDF = spark.createDataFrame(avocadosFromBoiseRDD, Avocado.class);
-        avocadosFromBoiseDF.write().json("gs://jar_storage/result/avocadosFromBoise");
+        //avocadosFromBoiseDF.write().json("gs://jar_storage/result/avocadosFromBoise");
 
         Long avocadosFromBoiseCount = avocadosFromBoiseRDD.count();
         System.out.println("number of avocados from Boise: " + avocadosFromBoiseCount);
@@ -75,14 +75,14 @@ public class Main {
         avocadosDF.createOrReplaceTempView("avocados");
         Dataset<Row> maxPriceDF = spark.sql("SELECT from_unixtime(date /1000,\"m/d/yyyy\" )as `date`, region , avgPrice FROM avocados where avgPrice=(" +
                 "select max(avgPrice) from avocados)");
-        maxPriceDF.write().json("gs://jar_storage/result/maxPriceInAllRegions");
+       // maxPriceDF.write().json("gs://jar_storage/result/maxPriceInAllRegions");
 
 
         Dataset<Row> avgPricesByRegionDF = spark.sql("SELECT region, avg(avgPrice) FROM avocados group by region");
-        avgPricesByRegionDF.write().json("gs://jar_storage/result/avgPricesByRegion");
+      //  avgPricesByRegionDF.write().json("gs://jar_storage/result/avgPricesByRegion");
 
         Dataset<Row> maxPricesByRegionDF = spark.sql("SELECT region, max(avgPrice) FROM avocados group by region");
-        maxPricesByRegionDF.write().json("gs://jar_storage/result/maxPricesByRegion");
+       // maxPricesByRegionDF.write().json("gs://jar_storage/result/maxPricesByRegion");
 
 
         context.close();
